@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>年別でも使えるページネーション</title>
+<style>#forkongithub a{background:#000;color:#fff;text-decoration:none;font-family:arial,sans-serif;text-align:center;font-weight:bold;padding:5px 40px;font-size:1rem;line-height:2rem;position:relative;transition:0.5s;}#forkongithub a:hover{background:#fff;color:#000;}#forkongithub a::before,#forkongithub a::after{content:"";width:100%;display:block;position:absolute;top:1px;left:0;height:1px;background:#fff;}#forkongithub a::after{bottom:1px;top:auto;}@media screen and (min-width:800px){#forkongithub{position:fixed;display:block;top:0;right:0;width:200px;overflow:hidden;height:200px;z-index:9999;}#forkongithub a{width:200px;position:absolute;top:60px;right:-60px;transform:rotate(45deg);-webkit-transform:rotate(45deg);-ms-transform:rotate(45deg);-moz-transform:rotate(45deg);-o-transform:rotate(45deg);box-shadow:4px 4px 10px rgba(0,0,0,0.8);}}</style>
+<script src="https://unpkg.com/vue"></script>
+
+<style>
+#contents {
+    position: relative;
+    display: flex;
+    justify-content: center;
+}
+#contents ul {
+    width: 600px;
+}
+#contents time {
+    display: inline-block;
+    color: gray;
+    margin-right: .5em;
+}
+
+#pager {
+    text-align: center;
+    padding-bottom: 5em;
+}
+.pager--page a {
+    color: black;
+    text-decoration: none;
+}
+.pager--page {
+    position: relative;
+    display: inline-block;
+    padding: 0 .2em;
+    margin: 0 .2em;
+}
+.current {
+    border-radius: 6px;
+    background-color: gray;
+}
+.current a {
+    color: white;
+}
+.pager--year {
+    position: absolute;
+    top: 1em;
+    left: -0.1em;
+    display: inline-block;
+    padding-top: 2em;
+    border-left: 1px solid gray;
+}
+.pager--year a {
+    color: gray;
+    display: block;
+    position: relative;
+    left: -0.8em;
+    font-size: 140%;
+    transform: rotate(90deg);
+}
+
+#controlls {
+    border-top: 1px solid lightgray;
+    padding-top: .5em;
+    text-align: center;
+}
+</style>
+</head>
+
+<body>
+    <main>
+        <header>
+            年別でも使えるページネーション
+            <span id="forkongithub"><a href="https://github.com/macrat/year-pagination">Fork me on GitHub</a></span>
+        </header>
+        <div id=contents>
+            <ul>
+                <li v-for="x in articles.slice(20*(current-1), 20*current)"><time>{{ x.date.getFullYear() }}年{{ x.date.getMonth()+1 }}月{{ x.date.getDate() }}日</time>{{ x.title }}</li>
+            </ul>
+        </div>
+        <ol id=pager>
+            <li class="pager--page" v-for="x in pages" :class="{current: x.idx == current}">
+                <span class=pager--year v-if=x.year><a href @click.prevent="current = x.idx">{{ x.year }}</a></span>
+                <a href @click.prevent="current = x.idx">{{ x.idx }}</a>
+            </li>
+        </ol>
+        <div id=controlls>
+            <p><label>表示する年数: <input type=number v-model=years min=1></label></p>
+            <p><button @click=reroll>シャッフルする</button></p>
+        </div>
+    </main>
+
+<script>
+new Vue({
+    el: 'main',
+    data() {
+        return {
+            current: 1,
+            articles: [],
+            pages: [],
+            years: 3,
+        };
+    },
+    methods: {
+        reroll() {
+            const titles = ['ここに記事が入ります', '記事のタイトル', 'ここにタイトルが入ります'];
+            const from = new Date(`${new Date().getFullYear() - this.years}`) * 1;
+            this.articles = Array.from({length: 20*9}).map(() => ({
+                date: new Date((new Date() - from)*Math.random() + from),
+                title: titles[parseInt(titles.length * Math.random())],
+            })).sort((x, y) => y.date - x.date);
+
+            let y = '';
+            this.pages = Array.from({length: 9}).map((_, i) => {
+                const xs = this.articles.slice(20*i, 20*i+20).map(x => x.date.getFullYear()).filter(x => x !== y);
+                if (xs.length > 0) {
+                    y = xs[0];
+                    return {idx: i+1, year: xs[0]};
+                }
+                return {idx: i+1};
+            });
+        },
+    },
+    mounted() {
+        this.reroll();
+    }
+})
+</script>
+</body>
+</html>
